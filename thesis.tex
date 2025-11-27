@@ -2,21 +2,27 @@
 
 \usepackage[dvipdfmx]{graphicx}
 \usepackage[dvipdfmx]{color}
-\usepackage[dvipdfmx, bookmarks=true, setpagesize=false, hidelinks]{hyperref}
+\usepackage[dvipdfmx, bookmarks=true, setpagesize=false]{hyperref}
 \usepackage{pxjahyper}
 
 \usepackage{thesis}
 \usepackage{here}
 \usepackage{url}
+\usepackage{subcaption}
+\captionsetup[figure]{justification=centering}
 
 
-\thesis{修 士 論 文}
+\thesis{卒 業 論 文}
 \title{
   \centering
-    \scalebox{1.0}{タイトル}\\
+    \scalebox{1.0}{視覚と行動のend-to-end学習により経路追従行動を}\\
+    \scalebox{1.0}{オフラインで模倣する手法の提案}\\
+    \scalebox{0.8}{(複数カメラでデータセットを収集しオフラインで訓練する手法の検証)}
+    \scalebox{0.7}{A proposal for an online imitation method of path-tracking}
     \vspace{-0.3zh}
-    \scalebox{0.7}{title}
-    \vspace{-0.6zh}
+    \scalebox{0.7}{behavior by end-to-end learning of vision and action}
+    \scalebox{0.7}{(Offline training with automatically collected multi-camera datasets)}
+    \vspace{-7.0zh}
 }
 \setlength{\textwidth}{\fullwidth}
 \setlength{\evensidemargin}{\oddsidemargin}
@@ -41,8 +47,16 @@
 \mainmatter{}
 %
 \include{introduction/main}
-%ここにディレクトリのパスを追加していく
 %
+\include{technology/main}
+%
+\include{old-method/main}
+%
+\include{proposed-method/main}
+%
+\include{experiment/main}
+%
+\include{conclusion/main}
 %% Back Matter
 \backmatter{}
 %
