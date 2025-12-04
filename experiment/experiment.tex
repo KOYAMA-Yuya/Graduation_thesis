@@ -41,7 +41,7 @@
 
 \begin{description}
   \item[2.訓練フェーズ]\mbox{}\\データ収集フェーズで収集したデータ1935個を用いて, 
-  バッチ数16, エポック数150のミニバッチ学習で学習した. 
+  バッチ数16, エポック数100のミニバッチ学習で学習した. 
 \end{description}
 
 \begin{description}
@@ -79,7 +79,7 @@
 \vspace{20mm}
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.5]{images/exp1.2_4000.png}
+  \includegraphics[keepaspectratio, scale=0.5]{images/exp1_loss.png}
   \caption{Loss value in the experiment1}
   \label{Fig:exp1_loss}
   \end{figure}
@@ -121,7 +121,7 @@
 しかし, この復帰行動が経路上のすべての地点で同様に発生するのかについては不明である．そこで, この点をさらに検証することとした．
 検証方法には先行研究で清岡らが使用した方法\figref{Fig:old-method_analysis}を参考に, 
 一定間隔に置いた場所からモデルの出力を記録した
-結果を\figref{Fig:this-method_analysis}に示す
+結果を\figref{Fig:this-method_analysis}に, 拡大図を\figref{Fig:this-method_analysis_expansion}に示す
 どの地点でも経路から外れた際にはもとに戻ろうとする挙動が確認できた
 
 \vspace{10mm}
@@ -138,16 +138,16 @@
 \vspace{20mm}
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.5]{images/exp1.2_4000.png}
+  \includegraphics[keepaspectratio, scale=0.5]{images/exp2_loss.png}
   \caption{Loss value in the experiment2}
   \label{Fig:exp2_loss}
   \end{figure}
 
 \newpage
-\vspace{20mm}
+\vspace{5mm}
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.5]{images/exp1.2_4000.png}
+  \includegraphics[keepaspectratio, scale=0.5]{images/old-method_analysis.png}
   \caption{verification of the output of the learning machine}
   \label{Fig:old-method_analysis}
   \end{figure}
@@ -155,14 +155,22 @@
 \vspace{20mm}
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.5]{images/exp1.2_4000.png}
+  \includegraphics[keepaspectratio, scale=0.5]{images/this-method_analysis.png}
   \caption{verification of the output of the learning machine}
   \label{Fig:this-method_analysis}
   \end{figure}
 
+\vspace{5mm}
+\begin{figure}[h]
+  \centering
+  \includegraphics[keepaspectratio, scale=0.5]{images/this-method_analysis_expansion.png}
+  \caption{verification of the output of the learning machine}
+  \label{Fig:this-method_analysis_expansion}
+  \end{figure}
+
 \newpage
 \section{実験3}
-実験2では\figref{Fig:9camera_Layout}のように平行に±0.20m離した上, 更に±5度の画像, 計9台のカメラを使用しているが, 
+実験2では平行に±0.20m離した上, 更に±5度の画像, 計9台のカメラを使用しているが, 
 実環境を考えると現実的ではないため, ±５度の画像は射影変換によって疑似的に再現する. 
 実験目的, 実験装置, データ収集フェーズ, テストフェーズは実験2と同様である. 
 
@@ -187,11 +195,3 @@
   \end{tabular}
   \label{tb:exp3}
 \end{table}
-
-\vspace{20mm}
-\begin{figure}[h]
-  \centering
-  \includegraphics[keepaspectratio, scale=0.5]{images/exp1.2_4000.png}
-  \caption{verification of the output of the learning machine}
-  \label{Fig:9camera_Layout}
-  \end{figure}
