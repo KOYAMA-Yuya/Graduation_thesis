@@ -1,19 +1,37 @@
 %!TEX root = ../thesis.tex
 
 \section{実験1}
+
 \subsection{実験目的}
-シミュレータ上で実験を行い, 提案手法の有効性を検証する.
+
+シミュレータ上において, 岡田らおよび髙橋らの研究の一条件として採用されていた, 
+前方に向けた3台のカメラのみを入力とした経路追従実験を行う. 
+本実験は, 先行研究の結果を再現可能であるかを確認することを目的とした追試であり, 
+髙橋らの研究ではコースアウトが生じることがあるとされている条件であるが, 構築したシステムの挙動を確認するために実施する.  
 
 \subsection{実験装置}
-実験は, \figref{Fig:gazebo}に示すGazebo\cite{gazebo}のWillow Garage\cite{willow}で\figref{Fig:willow-garage}に示すコースで一周行う.
- また, ロボットモデルには\figref{Fig:turtlebot3}に示すようなカメラを3つ搭載したTurtlebot3\cite{turtlebot3}を用いた. 
+
+本実験では, 先行研究における実験を再現可能とするため, 
+ロボット走行中に複数台のカメラ画像と行動データを同一タイミングで取得・保存可能な
+データ収集システムを構築した. 
+構築したシステムでは, 前方に向けて配置した3台のRGBカメラ画像と, 
+それに対応するロボットの速度指令（並進速度および角速度）を同期して取得し, 
+学習用データセットとして自動保存することができる. 
+
+実験環境には, \figref{Fig:gazebo} に示すロボットシミュレータ Gazebo\cite{gazebo} 上に構築された
+Willow Garage 環境\cite{willow} を使用した. 
+本環境内に設けられたコース（\figref{Fig:willow-garage}）を1周走行することで, 
+走行中の画像および行動データを収集した. 
+
+ロボットモデルには, \figref{Fig:turtlebot3} に示すように前方に3台のカメラを搭載した
+TurtleBot3\cite{turtlebot3} を使用した. 
 
 \begin{figure}[h]
   \centering
   \includegraphics[keepaspectratio, scale=0.15]{images/gazebo.png}
   \caption{Experimental environment in simulator}
   \label{Fig:gazebo}
-  \end{figure}
+\end{figure}
 
 \newpage
 \vspace{20mm}
@@ -22,49 +40,56 @@
   \includegraphics[keepaspectratio, scale=0.5]{images/willow-path.png}
   \caption{Course to collect data}
   \label{Fig:willow-garage}
-  \end{figure}
+\end{figure}
 
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.55]{images/turtlebot3.png}
+  \includegraphics[keepaspectratio, scale=0.45]{images/turtlebot3.png}
   \caption{Turtlebot3 waffle with 3 cameras}
   \label{Fig:turtlebot3}
-  \end{figure}
+\end{figure}
 
 \newpage
 \subsection{実験方法}
 \begin{description}
-  \item[1.データ収集フェーズ]\mbox{}\\データの収集方法について述べる. 
-  \figref{Fig:willow-garage}に示す目標経路に沿うよう自律移動させ, 0.2m走行するごとに, 
-  カメラ画像とナビゲーションの出力である角速度を収集する. 
+  \item[1. データ収集フェーズ]\mbox{}\\
+  \figref{Fig:willow-garage} に示す目標経路に沿ってロボットを走行させ, 
+  走行中に取得した前方3台のカメラ画像とナビゲーション出力である角速度を
+  学習用データとして収集した. 
+  カメラの配置間隔および向きは, 髙橋らの先行研究における議論に基づいて設定した. \cite{offline}
 \end{description}
 
 \begin{description}
-  \item[2.訓練フェーズ]\mbox{}\\データ収集フェーズで収集したデータ1935個を用いて, 
-  バッチ数16, エポック数100のミニバッチ学習で学習した. 
+  \item[2. 訓練フェーズ]\mbox{}\\
+  データ収集フェーズで取得した 1935 個のデータを用いて, 
+  バッチサイズ 16, エポック数 100 のミニバッチ学習によりモデルを学習した. 
 \end{description}
 
 \begin{description}
-  \item[3.テストフェーズ]\mbox{}\\ \figref{Fig:willow-garage}に示すコースで100個の学習済みモデルを使用して走行させる. 
-  ロボットの並進速度0.2m/sとし, 経路を1周できた場合を成功, 壁に激突したり, 経路から10m離れたりした場合を失敗とした.
+  \item[3. テストフェーズ]\mbox{}\\
+  \figref{Fig:willow-garage}に示すコースにおいて, 
+  学習済みモデルを用いてロボットを走行させた. 
+  ロボットの並進速度は 0.2\,m/s とし, 
+  コースを1周完走できた場合を成功, 
+  壁への衝突, またはコースから 10\,m 以上逸脱した場合を失敗と定義した. 
 \end{description}
 
 \subsection{実験結果}
-実験結果を表\ref{tb:exp1}に示す. また, 失敗箇所は\figref{Fig:result1}のようになった. 
-\par \figref{Fig:result1}の×の箇所で曲がり切ることができずにコースアウトしてしまった. 
-訓練時のlossを\figref{Fig:exp1_loss}に示す. 
-図では. 学習が収束している様子が確認できる. ここで, 角を曲がりきれなかった要因の一つとして, 
-目標経路周辺のデータが足りないためだと考えられる. 
-例えば先行研究では目標経路に沿った向きを基準として平行に±0.20m離した上で±5度傾けた際のデータも収集している
-これを踏まえて, 同じように平行に±0.20m離した上で±5度傾けた際のデータを走行しながら収集し, 
-データ数を増やすことで成功回数が増えるか検証する. 
+実験方法に記載する, 2, 3の手順を100回繰り返し, 100のデータを収集する. 実験結果を表\ref{tb:exp1} に示す. 
+また, 失敗箇所を \figref{Fig:result1} に示す. 
+図より, ×印の地点でロボットが曲がり切れずコースアウトしたことが確認された. 
+
+訓練時の損失関数の推移を \figref{Fig:exp1_loss} に示す.   
+学習は収束しているものの, カーブで曲がり切れなかった要因として, 
+目標経路周辺のデータが不足していた可能性がある. 
+
 
 \begin{table}[h]
   \centering
-  \caption{Number of successes in the batch learning}
-  \begin{tabular}{|c|c|} \hline0
+  \caption{Number of successes in the experiment}
+  \begin{tabular}{|c|c|} \hline
     Experiments & Number of successes \\ \hline
-    Exp.1(epoch150) & 42/100 \\ \hline
+    Exp.1(epoch100) & 42/100 \\ \hline
   \end{tabular}
   \label{tb:exp1}
 \end{table}
@@ -74,55 +99,109 @@
   \includegraphics[keepaspectratio, scale=0.5]{images/result1.png}
   \caption{Failure point of the experiment}
   \label{Fig:result1}
-  \end{figure}
+\end{figure}
 
 \vspace{20mm}
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.5]{images/exp1_loss.png}
+  \includegraphics[keepaspectratio, scale=0.3]{images/exp1_loss.png}
   \caption{Loss value in the experiment1}
   \label{Fig:exp1_loss}
-  \end{figure}
+\end{figure}
 
 \newpage
 \section{実験2}
-実験目的, 実験装置, テストフェーズは実験1と同様である.
+
+実験装置・テストフェーズは実験1と同様である. 
+
+\subsection{実験目的}
+
+実験1では, 構築した走行中データ収集システムを用いて取得したデータにより, 
+経路追従モデルの学習および走行実験を行った. その結果, 学習は収束するものの, 
+カーブ区間において失敗が確認された. 
+
+髙橋らの先行研究では, 目標経路に対して平行方向に ±0.20\,m ずらし, さらに ±5° 傾けたデータ
+で学習したモデルが最も経路追従できたと述べられている. 
+本研究でも同様に, 平行方向に ±0.20\,m 離した位置および ±5° の角度から撮影したデータを
+走行中データ収集システムを用いて追加収集する. 
+これにより, 走行中に自動収集された拡張データを用いた場合においても, 先行研究と同様の性能向上が得られるかを検証し, 
+本研究で構築したシステムの有効性を評価することを目的とする. 
+
 \subsection{実験方法}
+
 \begin{description}
-  \item[1.データ収集フェーズ]\mbox{}\\実験1を踏まえて, 経路周辺のデータを多く取得する手法を試みる. 
-  \figref{Fig:collect-data}にデータの収集方法を示す. 赤色の線である目標経路から平行に±0.02mの位置に搭載したカメラに加え
-  ヨー軸方向の画像も取得するため, ±5度傾けたカメラも搭載する
-  角速度を\figref{Fig:collect-data2}のように収集する. これを\figref{Fig:willow-garage}に示すコースで一周行う. 
-  なお, 走行しながら集める性質上, 角速度が中央のカメラとペアになるものしか取得できないため
-  オフセットを各カメラの分用意し, 中央の角速度に加えることで再現する
-  オフセットは先行研究で収集された1周分の角速度の平均とする
+  \item[1. データ収集フェーズ]\mbox{}\\
+  \figref{Fig:collect-data} にデータ収集方法を示す. 
+  また, ロボット走行中に学習データを自動蓄積するためのシステム構成について述べる．
+  本システムは, ロボットが経路追従走行を行う過程で, 複数視点の画像データとそれに対応する制御入力を同期して
+  自動保存する機能を備えている．具体的な視界構成として, \figref{Fig:collect-data} に示す通り, 
+  赤線で示す目標経路を基準として左右に平行な $\pm0.20\,\mathrm{m}$ のオフセットを設けたレーンを定義し, 
+  各レーン上に前方へ向けた仮想カメラを配置する．
+  さらに, 各カメラのヨー方向に $\pm5^\circ$ の回転を加えることで, 合計9通りの視点（3レーン $\times$ 3角度）からの画像を
+  同時に取得可能なシステムを構築した．これにより, ロボットを物理的に置き直すことなく, 走行中の1ステップごとに, 
+  経路逸脱状態からの復帰に必要な視覚情報を網羅的に収集することが可能となった．
+
+  \newpage
+  \item[2. オフセット決定フェーズ]\mbox{}\\
+  走行中にデータを自動収集する際, 取得できる実測値はその瞬間のロボットの視点に対応する制御入力のみである. 
+  しかし, 先行研究において最も経路追従できたモデルは経路から逸脱した状態から復帰するためのデータを学習させたモデルである.
+  本来, これらの経路から逸脱したデータはロボットを手動でずらして配置し直すことで取得していたが, 
+  本研究では走行中の自動収集を可能にするため, 角速度オフセットを用いた疑似的な教師データを生成する手法を導入する. 
+
+  本実験では, 走行中に取得した中央カメラ画像と角速度のペアに対し, 左右に配置された他視点カメラの画像を組み合わせる. 
+  この際, 各視点画像に対応する角速度は, 基準とする経路で得られた実測の角速度に以下の手順で算出したオフセット値を加算することで再現する. 
+  信頼性の高いオフセット値を算出するため, まず先行研究の手法に倣い, ロボットを目標経路に対して平行方向に ±0.20\,m ずらし, 
+  さらに ±5° 傾けた姿勢に手動で配置し, 1周分の角速度データを収集する. 収集した1周分の角速度データを平均化し, 
+  各姿勢における定数的な復帰に必要な操作量をオフセットとして決定する. 
+
+  そして学習時には, 走行中に自動収集された中央の角速度 $v_{\omega\_center}$ に対し, 
+  表 \ref{tab:angular_offset} に示すオフセット $v_{\omega\_offset}$ を加算し, 
+  各カメラ視点に対応する角速度 $v_{\omega\_pseudo} = v_{\omega\_center} + v_{\omega\_offset}$ を生成する. 
+  なお, 本研究では角速度の正方向を左回転と定義する. 
+
+  \item[3. 訓練フェーズ]\mbox{}\\
+  収集した 5805 個のデータを用い, バッチサイズ 16, エポック数 200 のミニバッチ学習で訓練を行った. 
 \end{description}
 
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.18]{images/collect-data.png}
+  \includegraphics[keepaspectratio, scale=0.3]{images/collect-data.png}
   \caption{Method of collecting data around the target route}
   \label{Fig:collect-data}
-  \end{figure}
+\end{figure}
 
-\begin{description}
-  \item[2.訓練フェーズ]\mbox{}\\データ収集フェーズで収集したデータ5805個を用いて, 
-  バッチ数16, エポック数200のミニバッチ学習で学習した. 
-\end{description}
+\begin{table}[t]
+  \centering
+  \caption{目標経路復帰のための各カメラ視点に対する角速度補正量 $v_{\omega\_offset}$ $[rad/s]$}
+  \label{tab:angular_offset}
+  \begin{tabular}{c|c|c|c}
+    \hline
+    レーン & 中央カメラ & 左カメラ & 右カメラ \\
+    \hline
+    lane1（中央） & 0.0226 & -0.0487 & 0.0862 \\
+    lane2（左）   & -0.2897 & -0.2524 & -0.3023 \\
+    lane3（右）   & 0.2895 & 0.2965 & 0.2770 \\
+    \hline
+  \end{tabular}
+\end{table}
 
 \newpage
 \subsection{実験結果}
-実験結果を表\ref{tb:exp2}に, 学習のlossを\figref{Fig:exp2_loss}に示す.
-経路周辺の画像データも入力データに含むことでデータ数を増やし, ミニバッチ学習を用いて訓練することで経路追従できることを確認した. 
+実験結果を表\ref{tb:exp2} に, 損失関数の推移を \figref{Fig:exp2_loss} に示す.   
+経路周辺のデータを入力に含めることでデータ数を増やし,   
+ミニバッチ学習を適用することで安定した経路追従が可能となった. 
 
 \subsection{検証}
-実験2では 150/150 の試行がすべて成功し, 安定したモデルを生成できた．
-また, 実験中にロボットを意図的に経路から逸脱させたところ, いずれの試行でも経路への復帰動作を確認した．
-しかし, この復帰行動が経路上のすべての地点で同様に発生するのかについては不明である．そこで, この点をさらに検証することとした．
-検証方法には先行研究で清岡らが使用した方法\figref{Fig:old-method_analysis}を参考に, 
-一定間隔に置いた場所からモデルの出力を記録した
-結果を\figref{Fig:this-method_analysis}に, 拡大図を\figref{Fig:this-method_analysis_expansion}に示す
-どの地点でも経路から外れた際にはもとに戻ろうとする挙動が確認できた
+実験2では 150/150 の試行すべてが成功し, 安定したモデルを生成できた.   
+また, 実験中にロボットを意図的に経路から逸脱させたところ, 
+いずれの試行でも経路へ復帰する挙動が確認された. 
+
+しかし, この復帰挙動がどの地点においても一様に発生するかは不明である.   
+そこで, 先行研究（清岡ら）の方法\figref{Fig:old-method_analysis} を参考に, 
+一定間隔で配置した地点からのモデル出力を記録した.   
+結果を \figref{Fig:this-method_analysis} に, 拡大図を \figref{Fig:this-method_analysis_expansion} に示す. 
+
+いずれの地点においても経路から外れた際に元の経路へ戻ろうとする挙動が確認でき, 構築したシステムの有効性が検証された. 
 
 \vspace{10mm}
 \begin{table}[h]
@@ -138,53 +217,104 @@
 \vspace{20mm}
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.5]{images/exp2_loss.png}
+  \includegraphics[keepaspectratio, scale=0.3]{images/exp2_loss.png}
   \caption{Loss value in the experiment2}
   \label{Fig:exp2_loss}
-  \end{figure}
+\end{figure}
 
 \newpage
 \vspace{5mm}
 \begin{figure}[h]
   \centering
-  \includegraphics[keepaspectratio, scale=0.5]{images/old-method_analysis.png}
-  \caption{verification of the output of the learning machine}
+  \includegraphics[keepaspectratio, scale=0.2]{images/old-method_analysis.png}
+  \caption{Verification method in previous research（source: \cite{kiyooka-si}）}
   \label{Fig:old-method_analysis}
-  \end{figure}
+\end{figure}
 
 \vspace{20mm}
 \begin{figure}[h]
   \centering
   \includegraphics[keepaspectratio, scale=0.5]{images/this-method_analysis.png}
-  \caption{verification of the output of the learning machine}
+  \caption{Verification of the output of the learning machine}
   \label{Fig:this-method_analysis}
-  \end{figure}
+\end{figure}
 
 \vspace{5mm}
 \begin{figure}[h]
   \centering
   \includegraphics[keepaspectratio, scale=0.5]{images/this-method_analysis_expansion.png}
-  \caption{verification of the output of the learning machine}
+  \caption{Example of the verification results}
   \label{Fig:this-method_analysis_expansion}
-  \end{figure}
+\end{figure}
 
 \newpage
 \section{実験3}
-実験2では平行に±0.20m離した上, 更に±5度の画像, 計9台のカメラを使用しているが, 
-実環境を考えると現実的ではないため, ±５度の画像は射影変換によって疑似的に再現する. 
-実験目的, 実験装置, データ収集フェーズ, テストフェーズは実験2と同様である. 
+
+実験2では, 平行方向 ±0.20\,m と角度 ±5° の視点から取得した画像（計 9 台のカメラ相当）を使用したが, 
+実環境ではそのような多数のカメラを搭載することは現実的ではない. 
+このような制約の下でも視点拡張の効果を得るための手法が求められる. 
+本実験では, その一手法として射影変換を用いた視点拡張に着目する.
+例を \figref{Fig:Exp_3_Method} に示す.
+実験装置・データ収集フェーズ・テストフェーズは実験2と同様である.
+
+\subsection{実験目的}
+
+本実験では, 実環境を意識して前方3台のカメラのみを用いて走行中にデータを収集し, 
+射影変換によって視点を拡張するシステムを構築する. 
+さらに, 構築したシステムを用いることで, 
+カメラ台数を削減した条件においても
+十分な経路追従性能が得られるかを検証することを目的とする.
+
+\vspace{5mm}
+\begin{figure}[h]
+  \centering
+  \includegraphics[keepaspectratio, scale=0.3]{images/Exp_3_Method.png}
+  \caption{Projection transformation for reducing camera count}
+  \label{Fig:Exp_3_Method}
+\end{figure}
 
 \subsection{実験方法}
+
 \begin{description}
-  \item[2.訓練フェーズ]\mbox{}\\データ収集フェーズで収集したデータ1935個を用いて, 
-  バッチ数16, エポック数200のミニバッチ学習で学習した. 
-  なお, 射影変換に使用する焦点距離fは$f_x = \frac{W_{\text{px}}}{2 \tan\left(\frac{\mathrm{FOV_h}}{2}\right)}$を使う．
-  今回水平視野角は2.09rad, 画像サイズは64*48である
+  \item[1. データ収集フェーズ]\mbox{}\\
+  \figref{Fig:collect-data} にデータ収集方法を示す. 
+  本システムでは, 各走行レーン（中央, 左右±0.20,m）に配置した前方カメラの画像に対し, 
+  以下訓練フェーズに示す射影変換を適用することで, ヨー方向に$\pm5^\circ$回転させた視界画像をソフトウェア上で再現する．
+  そのため, 本実験野データ収集フェーズでは赤線で示す目標経路を基準として左右に平行な $\pm0.20\,\mathrm{m}$ のレーン
+  上に配置した仮想カメラのみを使用する.
+  これにより, ハードウェア構成を簡略化しつつ, 経路追従の学習に不可欠な経路から逸脱した姿勢を網羅的に収集することが
+  可能となった．
+
+  \item[2. 訓練フェーズ]\mbox{}\\
+  収集した 1935 個のデータを用い, バッチサイズ 16, エポック数 200 で学習を行った.   
+  射影変換に使用する焦点距離 $f$ は以下で求める. 変換後の画像の例を\figref{Fig:Projective_transformation_example}に示す
+  \[
+    f_x = \frac{W_{\text{px}}}{2 \tan\left(\frac{\mathrm{FOV_h}}{2}\right)}
+  \]
+  今回は水平視野角 $\mathrm{FOV_h}=2.09\ \mathrm{rad}$, 画像サイズ $64\times48$ を用いた. 
 \end{description}
 
-\subsection{実験結果}
-実験結果を表\ref{tb:exp3}に示す.
+\vspace{5mm}
+\begin{figure}[h]
+  \centering
+  \includegraphics[keepaspectratio, scale=0.4]{images/Projective_transformation_example.png}
+  \caption{Projective transformation example}
+  \label{Fig:Projective_transformation_example}
+\end{figure}
 
+\subsection{実験結果}
+実験結果を表\ref{tb:exp3}に示す. 
+分母の150は実験回数を表し, 分子は成功回数を示している. 
+その結果, 目標経路上および $\pm0.2\,\mathrm{m}$ の位置で取得したカメラ画像に対して, 
+$\pm5^\circ$ の向きに射影変換を行った場合, 
+100\%（150回中150回）の成功率が得られた. 
+また, オンライン手法では学習に約40分を要するのに対し, 
+オフライン手法では約4分で学習が完了したことから, 
+学習に要する時間を約1/10に短縮できることを確認した. 
+ただし, オフライン手法における学習時間4分には, 
+実験方法で述べたデータ収集に要する時間は含まれていない. 
+ここで, \figref{Fig:exp3_loss}に, この実験条件で学習したときのlossグラフを示す. 
+図より, 100 epoch 程度で loss がほぼ収束しており, その後は緩やかに下降している様子が確認できる. 
 \vspace{10mm}
 \begin{table}[h]
   \centering
@@ -195,3 +325,11 @@
   \end{tabular}
   \label{tb:exp3}
 \end{table}
+
+\vspace{20mm}
+\begin{figure}[h]
+  \centering
+  \includegraphics[keepaspectratio, scale=0.3]{images/exp3_loss.png}
+  \caption{Loss value in the experiment2}
+  \label{Fig:exp3_loss}
+\end{figure}
